@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>媛媛老师的点名系统 V1.0</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    }
+
+    :root {
+      --primary: #00ffd5;
+      --secondary: #6e17ff;
+      --dark: #0a0d25;
+      --light: #e0f7ff;
+      --accent: #ff0059;
+      --glow: 0 0 10px var(--primary), 0 0 20px rgba(0, 255, 213, 0.3);
+    }
+
+    body {
+      background: var(--dark);
+      color: var(--light);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      /* overflow: hidden; */
+      background-image:
+        radial-gradient(circle at 20% 20%, rgba(110, 23, 255, 0.2) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(0, 255, 213, 0.2) 0%, transparent 50%);
+      position: relative;
+    }
+
+    .stars {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .star {
+      position: absolute;
+      background-color: white;
+      border-radius: 50%;
+      animation: twinkle var(--duration) infinite ease-in-out;
+      opacity: var(--opacity);
+    }
+
+    @keyframes twinkle {
+
+      0%,
+      100% {
+        opacity: var(--opacity);
+      }
+
+      50% {
+        opacity: calc(var(--opacity) * 0.3);
+      }
+    }
+
+    .container {
+      width: 90%;
+      max-width: 800px;
+      background-color: rgba(10, 13, 37, 0.8);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      border: 1px solid rgba(0, 255, 213, 0.3);
+      box-shadow: 0 0 20px rgba(0, 255, 213, 0.2);
+      padding: 30px;
+      position: relative;
+      z-index: 1;
+      overflow: hidden;
+    }
+
+    .container::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, transparent 60%, rgba(0, 255, 213, 0.1) 100%);
+      z-index: -1;
+      animation: rotate 30s linear infinite;
+    }
+
+    @keyframes rotate {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    h1 {
+      text-align: center;
+      color: var(--primary);
+      margin-bottom: 30px;
+      font-size: 2.5rem;
+      position: relative;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    h1::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 120px;
+      height: 2px;
+      background: linear-gradient(to right, transparent, var(--primary), transparent);
+    }
+
+    .control-panel {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-bottom: 30px;
+      justify-content: center;
+    }
+
+    .input-group {
+      flex: 1;
+      min-width: 250px;
+    }
+
+    .input-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--primary);
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-size: 0.9rem;
+    }
+
+    .input-group textarea {
+      width: 100%;
+      padding: 15px;
+      background-color: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(0, 255, 213, 0.3);
+      border-radius: 8px;
+      color: var(--light);
+      font-size: 1rem;
+      resize: vertical;
+      min-height: 100px;
+      transition: all 0.3s ease;
+    }
+
+    .input-group textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: var(--glow);
+    }
+
+    .btn {
+      padding: 15px 30px;
+      background: linear-gradient(45deg, var(--secondary), var(--primary));
+      border: none;
+      border-radius: 50px;
+      color: var(--dark);
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 20px rgba(0, 255, 213, 0.3);
+      display: block;
+      margin: 20px auto;
+      min-width: 200px;
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: all 0.5s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 7px 30px rgba(0, 255, 213, 0.5);
+    }
+
+    .btn:hover::before {
+      left: 100%;
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    .display-area {
+      height: 100px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      margin: 40px 0;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(0, 255, 213, 0.2);
+      overflow: hidden;
+    }
+
+    .display-area::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--primary), transparent);
+      animation: scan-line 3s linear infinite;
+    }
+
+    @keyframes scan-line {
+      0% {
+        top: 0;
+      }
+
+      100% {
+        top: 100%;
+      }
+    }
+
+    .hologram-container {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      opacity: 0.3;
+      background: repeating-linear-gradient(0deg,
+          transparent,
+          rgba(0, 255, 213, 0.3) 1px,
+          transparent 2px);
+    }
+
+    .student-display {
+      font-size: 3rem;
+      color: var(--primary);
+      text-align: center;
+      font-weight: bold;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      z-index: 2;
+      text-shadow: var(--glow);
+      transition: all 0.3s ease;
+    }
+
+    .particle {
+      position: absolute;
+      width: 5px;
+      height: 5px;
+      background-color: var(--primary);
+      border-radius: 50%;
+      animation: particle-float 3s ease-in-out infinite;
+      opacity: 0;
+      z-index: 1;
+    }
+
+    @keyframes particle-float {
+      0% {
+        transform: translateY(0) scale(0);
+        opacity: 0;
+      }
+
+      50% {
+        opacity: 0.7;
+      }
+
+      100% {
+        transform: translateY(-100px) scale(1);
+        opacity: 0;
+      }
+    }
+
+    .history-panel {
+      margin-top: 30px;
+      padding: 20px;
+      background-color: rgba(255, 255, 255, 0.03);
+      border-radius: 10px;
+      border: 1px solid rgba(0, 255, 213, 0.2);
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .history-panel h3 {
+      color: var(--primary);
+      margin-bottom: 15px;
+      font-size: 1.2rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .history-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .clear-history-btn {
+      background: linear-gradient(45deg, var(--accent), var(--secondary));
+      border: none;
+      border-radius: 20px;
+      color: var(--dark);
+      font-size: 0.8rem;
+      font-weight: bold;
+      padding: 5px 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      box-shadow: 0 3px 10px rgba(0, 255, 213, 0.2);
+    }
+
+    .clear-history-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0, 255, 213, 0.4);
+    }
+
+    .clear-history-btn:active {
+      transform: translateY(1px);
+    }
+
+    .history-list {
+      list-style-type: none;
+    }
+
+    .history-list li {
+      padding: 12px;
+      border-bottom: 1px solid rgba(0, 255, 213, 0.1);
+      display: flex;
+      justify-content: space-between;
+      transition: all 0.3s ease;
+    }
+
+    .history-list li:hover {
+      background-color: rgba(0, 255, 213, 0.05);
+    }
+
+    .history-list li:last-child {
+      border-bottom: none;
+    }
+
+    .history-list li span:first-child {
+      font-weight: bold;
+      color: var(--light);
+    }
+
+    .history-list li span:last-child {
+      color: rgba(224, 247, 255, 0.5);
+      font-family: 'Courier New', monospace;
+    }
+
+    .hexagon {
+      position: absolute;
+      width: 100px;
+      height: 60px;
+      background-color: rgba(0, 255, 213, 0.05);
+      transform: rotate(30deg);
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .hexagon::before,
+    .hexagon::after {
+      content: "";
+      position: absolute;
+      width: 0;
+      border-left: 50px solid transparent;
+      border-right: 50px solid transparent;
+      pointer-events: none;
+    }
+
+    .hexagon::before {
+      bottom: 100%;
+      border-bottom: 30px solid rgba(0, 255, 213, 0.05);
+    }
+
+    .hexagon::after {
+      top: 100%;
+      border-top: 30px solid rgba(0, 255, 213, 0.05);
+    }
+
+    .shake {
+      animation: shake 0.8s cubic-bezier(.36, .07, .19, .97) both;
+    }
+
+    @keyframes shake {
+
+      10%,
+      90% {
+        transform: translate3d(-1px, 0, 0);
+      }
+
+      20%,
+      80% {
+        transform: translate3d(2px, 0, 0);
+      }
+
+      30%,
+      50%,
+      70% {
+        transform: translate3d(-4px, 0, 0);
+      }
+
+      40%,
+      60% {
+        transform: translate3d(4px, 0, 0);
+      }
+    }
+
+    .teleport {
+      animation: teleport 1s cubic-bezier(.36, .07, .19, .97) forwards;
+    }
+
+    @keyframes teleport {
+      0% {
+        transform: scale(1);
+        opacity: 1;
+        filter: blur(0);
+      }
+
+      50% {
+        transform: scale(1.5);
+        opacity: 0.5;
+        filter: blur(10px);
+      }
+
+      100% {
+        transform: scale(1);
+        opacity: 1;
+        filter: blur(0);
+      }
+    }
+
+    .fade-in {
+      animation: fadeIn 0.8s forwards;
+    }
+
+    @keyframes fadeIn {
+      0% {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .scanner {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background-color: var(--primary);
+      box-shadow: var(--glow);
+      opacity: 0;
+      z-index: 3;
+    }
+
+    .scanning {
+      animation: scanning 2s ease-in-out;
+    }
+
+    @keyframes scanning {
+      0% {
+        top: 0;
+        opacity: 0.8;
+      }
+
+      100% {
+        top: 100%;
+        opacity: 0.8;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        width: 95%;
+        padding: 20px;
+      }
+
+      h1 {
+        font-size: 1.8rem;
+      }
+
+      .student-display {
+        font-size: 2rem;
+      }
+    }
+
+    /* 自定义滚动条 */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--primary);
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--secondary);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="stars" id="starsContainer"></div>
+  <div class="container">
+    <h1>媛媛老师的点名系统</h1>
+
+    <div class="control-panel">
+      <div class="input-group">
+        <label for="studentNames">学生名单</label>
+        <textarea id="studentNames" placeholder="输入学生名单，每行一个名字..."></textarea>
+      </div>
+    </div>
+
+    <button id="randomBtn" class="btn">激活扫描</button>
+    <button id="stopBtn" class="btn" style="display: none;">终止扫描</button>
+
+    <div class="display-area">
+      <div class="hologram-container"></div>
+      <div class="scanner" id="scanner"></div>
+      <div class="student-display fade-in" id="studentDisplay">准备开始</div>
+    </div>
+
+    <div class="history-panel">
+      <div class="history-header">
+        <h3>历史数据</h3>
+        <button id="clearHistoryBtn" class="clear-history-btn">清空历史</button>
+      </div>
+      <ul class="history-list" id="historyList"></ul>
+    </div>
+  </div>
+
+  <script>
+    /**
+     * 点名器应用 - 太空舱版本
+     * @class SpaceNamePicker
+     */
+    class SpaceNamePicker {
+      /**
+       * 创建点名器实例
+       * @constructor
+       */
+      constructor() {
+        // DOM 元素
+        this.studentsInput = document.getElementById('studentNames');
+        this.randomBtn = document.getElementById('randomBtn');
+        this.stopBtn = document.getElementById('stopBtn');
+        this.studentDisplay = document.getElementById('studentDisplay');
+        this.historyList = document.getElementById('historyList');
+        this.starsContainer = document.getElementById('starsContainer');
+        this.scanner = document.getElementById('scanner');
+        this.clearHistoryBtn = document.getElementById('clearHistoryBtn');
+
+        // 应用状态
+        this.students = [];
+        this.pickedStudents = [];
+        this.isRandomizing = false;
+        this.randomizeInterval = null;
+        this.currentIndex = 0;
+
+        // 初始化
+        this.init();
+      }
+
+      /**
+       * 初始化应用
+       */
+      init() {
+        // 生成默认学生名单
+        const defaultNames = ['王可甜',
+          '李昕颖',
+          '姜莱',
+          '彭筱雅',
+          '刘昊澎',
+          '赵未都',
+          '勇皓为',
+          '王选豪',
+          '周大茗',
+          '张辛浩',
+          '鹿卓旸',
+          '李浩铖',
+          '张太阳',
+          '孙启哲',
+          '王诗琳',
+          '包绮雯',
+          '孙韫博',
+          '李昊伦',
+          '刘芯莹',
+          '于小霂',
+          '曹启哲',
+          '刘轩昂',
+          '程科砚',
+          '李馨洋',
+          '王姝昕',
+          '郝玥涵',
+          '卫泽岳',
+          '龙安迪',
+          '初育竹',
+          '刘欣瑜',
+          '刘依凡',
+          '窦梓鸣',
+          '赵子榕',
+          '杨弋潇',
+          '王一诺',
+          '汪晓蕊',
+          '姚易江',
+          '宋雨潼',
+          '叶政雯',
+          '段毅赫',
+          '王世皓',
+          '孙晟熙',
+          '郑宇泽',
+          '李昀亦翀',
+          '殷沐瑶',
+          '倪浩轩',
+          '吴欣怡',
+          '董秋男',
+          '许嫣然',
+          '毛冠智',
+          '张梓博',
+          '王俪颖',
+          '苏庭浩',];
+        this.studentsInput.value = defaultNames.join('\n');
+        this.students = defaultNames;
+
+        // 添加事件监听器
+        this.randomBtn.addEventListener('click', () => this.toggleRandomize());
+        this.stopBtn.addEventListener('click', () => this.toggleRandomize());
+        this.studentsInput.addEventListener('change', () => this.updateStudentList());
+        this.clearHistoryBtn.addEventListener('click', () => this.clearHistory());
+
+        // 创建星空背景
+        this.createStars();
+
+        // 添加六边形背景元素
+        this.createHexagonBackground();
+      }
+
+      /**
+       * 更新学生列表
+       */
+      updateStudentList() {
+        const names = this.studentsInput.value.trim().split('\n').filter(name => name.trim());
+        if (names.length === 0) {
+          alert('请至少输入一个学生名字！');
+          return;
+        }
+        this.students = names;
+      }
+
+      /**
+       * 切换随机选择状态
+       */
+      toggleRandomize() {
+        this.updateStudentList();
+
+        if (this.students.length === 0) return;
+
+        if (this.isRandomizing) {
+          // 停止随机选择
+          clearInterval(this.randomizeInterval);
+          this.isRandomizing = false;
+          this.randomBtn.style.display = 'block';
+          this.stopBtn.style.display = 'none';
+
+          // 确定最终选中的学生
+          const selectedStudent = this.studentDisplay.textContent;
+          this.addToHistory(selectedStudent);
+          this.pickedStudents.push(selectedStudent);
+
+          // 添加动画效果
+          this.studentDisplay.classList.add('teleport');
+          setTimeout(() => {
+            this.studentDisplay.classList.remove('teleport');
+            this.createParticles();
+          }, 1000);
+        } else {
+          // 开始随机选择
+          this.isRandomizing = true;
+          this.randomBtn.style.display = 'none';
+          this.stopBtn.style.display = 'block';
+
+          // 如果所有学生都被选中过，重置选中记录
+          if (this.pickedStudents.length >= this.students.length) {
+            this.pickedStudents = [];
+          }
+
+          // 获取未被选中的学生
+          const availableStudents = this.students.filter(student => !this.pickedStudents.includes(student));
+
+          // 添加扫描动画
+          this.scanner.classList.add('scanning');
+          setTimeout(() => {
+            this.scanner.classList.remove('scanning');
+          }, 2000);
+
+          this.studentDisplay.classList.add('shake');
+          this.randomizeInterval = setInterval(() => {
+            this.currentIndex = Math.floor(Math.random() * availableStudents.length);
+            this.studentDisplay.textContent = availableStudents[this.currentIndex];
+          }, 10);
+        }
+      }
+
+      /**
+       * 添加到历史记录
+       * @param {string} student - 学生姓名
+       */
+      addToHistory(student) {
+        const now = new Date();
+        const timeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+
+        const listItem = document.createElement('li');
+        listItem.innerHTML = `<span>${student}</span><span>${timeString}</span>`;
+
+        // 添加到历史列表的最前面
+        if (this.historyList.firstChild) {
+          this.historyList.insertBefore(listItem, this.historyList.firstChild);
+        } else {
+          this.historyList.appendChild(listItem);
+        }
+
+        // 保持历史记录不超过10条
+        while (this.historyList.children.length > 10) {
+          this.historyList.removeChild(this.historyList.lastChild);
+        }
+
+        // 添加动画效果
+        listItem.classList.add('fade-in');
+      }
+
+      /**
+       * 创建粒子效果
+       */
+      createParticles() {
+        const displayArea = document.querySelector('.display-area');
+
+        for (let i = 0; i < 30; i++) {
+          const particle = document.createElement('div');
+          particle.classList.add('particle');
+
+          // 随机位置和动画
+          particle.style.left = `${Math.random() * 100}%`;
+          particle.style.bottom = '50%';
+          particle.style.animationDuration = `${Math.random() * 2 + 2}s`;
+          particle.style.animationDelay = `${Math.random() * 0.5}s`;
+
+          displayArea.appendChild(particle);
+
+          // 清除粒子
+          setTimeout(() => {
+            displayArea.removeChild(particle);
+          }, 3000);
+        }
+      }
+
+      /**
+       * 创建星空背景
+       */
+      createStars() {
+        for (let i = 0; i < 150; i++) {
+          const star = document.createElement('div');
+          star.classList.add('star');
+
+          const size = Math.random() * 2;
+          const duration = Math.random() * 5 + 2;
+          const opacity = Math.random() * 0.7 + 0.3;
+
+          star.style.width = `${size}px`;
+          star.style.height = `${size}px`;
+          star.style.left = `${Math.random() * 100}%`;
+          star.style.top = `${Math.random() * 100}%`;
+          star.style.setProperty('--duration', `${duration}s`);
+          star.style.setProperty('--opacity', opacity);
+
+          this.starsContainer.appendChild(star);
+        }
+      }
+
+      /**
+       * 创建六边形背景
+       */
+      createHexagonBackground() {
+        const container = document.querySelector('.container');
+
+        for (let i = 0; i < 8; i++) {
+          const hexagon = document.createElement('div');
+          hexagon.classList.add('hexagon');
+
+          hexagon.style.left = `${Math.random() * 100}%`;
+          hexagon.style.top = `${Math.random() * 100}%`;
+          hexagon.style.opacity = Math.random() * 0.3 + 0.1;
+
+          container.appendChild(hexagon);
+        }
+      }
+
+      /**
+       * 清空历史记录
+       */
+      clearHistory() {
+        // 清空历史列表
+        this.historyList.innerHTML = '';
+
+        // 重置显示区域为初始状态
+        this.studentDisplay.textContent = '准备开始';
+        this.studentDisplay.classList.remove('shake', 'teleport');
+        this.studentDisplay.classList.add('fade-in');
+
+        // 重置已选学生记录
+        this.pickedStudents = [];
+
+        // 添加清空动画效果
+        const scannerClone = this.scanner.cloneNode(true);
+        const historyPanel = document.querySelector('.history-panel');
+        historyPanel.appendChild(scannerClone);
+        scannerClone.classList.add('scanning');
+
+        setTimeout(() => {
+          historyPanel.removeChild(scannerClone);
+        }, 2000);
+      }
+    }
+
+    // 初始化应用
+    document.addEventListener('DOMContentLoaded', () => {
+      new SpaceNamePicker();
+    });
+  </script>
+</body>
+
+</html>
